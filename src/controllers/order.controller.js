@@ -23,9 +23,9 @@ const getOrders = async (req, res) => {
 
   try {
     const orders = await prisma.order.findMany({
+      where: { user_id: user_id },
       skip: offset,
       take: parseInt(limit),
-      user_id,
     });
 
     const totalOrders = await prisma.order.count();

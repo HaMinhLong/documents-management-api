@@ -11,7 +11,7 @@ export const validateCreateUser = [
     .withMessage("Email là bắt buộc")
     .isEmail()
     .withMessage("Email không hợp lệ"),
-  body("password_hash")
+  body("password")
     .notEmpty()
     .withMessage("Mật khẩu là bắt buộc")
     .isLength({ min: 6 })

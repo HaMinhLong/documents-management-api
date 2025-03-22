@@ -1,20 +1,53 @@
+import bcrypt from "bcrypt";
 import prisma from "../prisma.js";
 import responseUtil from "../utils/response.util.js";
 
 const createUser = async (req, res) => {
-  const { username, email, password_hash, full_name, phone, referral_code } =
+  const { username, email, password, full_name, phone, referral_code } =
     req.body;
+
   try {
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        password_hash,
-        full_name,
-        phone,
-        referral_code,
+    const saltRounds = 10;
+    const passwordHashed = await bcrypt.hash(password, saltRounds);
+
+    const existingDeletedUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email, is_deleted: true },
+          { username, is_deleted: true },
+          { referral_code, is_deleted: true },
+        ],
       },
     });
+
+    let user;
+
+    if (existingDeletedUser) {
+      user = await prisma.user.update({
+        where: { id: existingDeletedUser.id },
+        data: {
+          username,
+          email,
+          password_hash: passwordHashed,
+          full_name,
+          phone,
+          referral_code,
+          is_deleted: false,
+        },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          username,
+          email,
+          password_hash: passwordHashed,
+          full_name,
+          phone,
+          referral_code,
+        },
+      });
+    }
+
     responseUtil.success(res, "Tạo mới thành công", user, 201);
   } catch (error) {
     responseUtil.error(res, "Xảy ra lỗi khi tạo mới", error.message, 500);
@@ -27,6 +60,7 @@ const getUsers = async (req, res) => {
 
   try {
     const users = await prisma.user.findMany({
+      where: { is_deleted: false },
       skip: offset,
       take: parseInt(limit),
     });
@@ -124,13 +158,13 @@ const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
     const user = await checkUserExists(id);
-
     if (!user) {
       responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
-    await prisma.user.delete({
+    await prisma.user.update({
       where: { id: parseInt(id) },
+      data: { is_deleted: true },
     });
 
     responseUtil.success(res, "Xoá bản ghi thành công", 204);

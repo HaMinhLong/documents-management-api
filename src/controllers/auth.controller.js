@@ -1,0 +1,75 @@
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import prisma from "../prisma.js";
+import responseUtil from "../utils/response.util.js";
+
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return responseUtil.error(
+        res,
+        "Email hoặc mật khẩu không chính xác",
+        null,
+        401
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+    if (!isPasswordValid) {
+      return responseUtil.error(
+        res,
+        "Email hoặc mật khẩu không chính xác",
+        null,
+        401
+      );
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const { password_hash, ...userData } = user;
+    responseUtil.success(res, "Đăng nhập thành công", {
+      token,
+      user: userData,
+    });
+  } catch (error) {
+    responseUtil.error(res, "Xảy ra lỗi khi đăng nhập", error.message, 500);
+  }
+};
+
+const getMe = async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        full_name: true,
+        phone: true,
+        referral_code: true,
+        is_deleted: true,
+      },
+    });
+
+    if (!user) {
+      return responseUtil.error(res, "Người dùng không tồn tại", null, 404);
+    }
+
+    responseUtil.success(res, "Lấy thông tin thành công", user);
+  } catch (error) {
+    responseUtil.error(res, "Xảy ra lỗi khi lấy thông tin", error.message, 500);
+  }
+};
+
+export default { loginUser, getMe };
