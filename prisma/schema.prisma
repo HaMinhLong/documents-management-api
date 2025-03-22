@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum payment_status {
+  pending
+  completed
+  failed
+}
+
 enum user_status {
   pending
   active
@@ -27,14 +33,29 @@ enum level_status {
   Diamond
 }
 
+model ReferralHistory {
+  id                Int      @id @default(autoincrement())
+  referred_id       Int      
+  order_id          Int      
+  commission_amount Decimal  @db.Decimal(15, 2)
+  status            payment_status @default(pending)
+  created_at        DateTime @default(now()) 
+
+  referred_user     User     @relation(fields: [referred_id], references: [id])
+  order             Order    @relation(fields: [order_id], references: [id])
+
+  @@map("referral_histories")
+}
+
 model Order {
   id     Int      @id @default(autoincrement())
   user_id      Int
   total_amount Decimal  @db.Decimal(15, 2)
-  status       String   @default("pending")
+  status       payment_status @default(pending)
   created_at   DateTime @default(now())
 
   user         User     @relation(fields: [user_id], references: [id])
+  referral_history  ReferralHistory[]
 
   @@map("orders")
 }
@@ -44,7 +65,7 @@ model Transaction {
   user_id     Int
   amount      Decimal  @db.Decimal(15, 2)
   type        String   
-  status      String   @default("pending") 
+  status      payment_status @default(pending)
   reference_id Int?    
   description String?  
   created_at  DateTime @default(now())
@@ -72,6 +93,7 @@ model User {
 
   orders       Order[]
   transactions Transaction[]
+  referral_history  ReferralHistory[]
 
   @@map("users")
 }
