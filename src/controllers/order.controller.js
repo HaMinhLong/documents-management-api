@@ -1,4 +1,5 @@
 import prisma from "../prisma.js";
+import responseUtil from "../utils/response.util.js";
 
 const createOrder = async (req, res) => {
   const { user_id, total_amount, status } = req.body;
@@ -10,9 +11,9 @@ const createOrder = async (req, res) => {
         status,
       },
     });
-    res.status(201).json(order);
+    responseUtil.success(res, "Tạo mới thành công", order, 201);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    responseUtil.error(res, "Xảy ra lỗi khi tạo mới", error.message, 500);
   }
 };
 
@@ -30,19 +31,22 @@ const getOrders = async (req, res) => {
     const totalOrders = await prisma.order.count();
     const totalPages = Math.ceil(totalOrders / limit);
 
-    res.status(200).json({
-      data: orders,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalItems: totalOrders,
-        totalPages,
+    responseUtil.success(
+      res,
+      "Lấy danh sách thành công",
+      {
+        data: orders,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalItems: totalOrders,
+          totalPages,
+        },
       },
-    });
-
-    res.status(200).json(orders);
+      200
+    );
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    responseUtil.error(res, "Lấy danh sách thất bại", error.message, 500);
   }
 };
 
@@ -58,12 +62,17 @@ const getOrderById = async (req, res) => {
   try {
     const order = await checkOrderExists(id);
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
-    res.status(200).json(order);
+    responseUtil.success(res, "Lấy thông tin bản ghi thành công", order, 200);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    responseUtil.error(
+      res,
+      "Lấy thông tin bản ghi thất bại",
+      error.message,
+      500
+    );
   }
 };
 
@@ -74,16 +83,17 @@ const updateOrder = async (req, res) => {
   try {
     const order = await checkOrderExists(id);
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     const updatedOrder = await prisma.order.update({
       where: { id: parseInt(id) },
       data: { user_id, total_amount, status },
     });
-    res.status(200).json(updatedOrder);
+
+    responseUtil.success(res, "Cập nhật thành công", updatedOrder, 200);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    responseUtil.error(res, "Cập nhật thất bại", error.message, 500);
   }
 };
 
@@ -92,16 +102,16 @@ const deleteOrder = async (req, res) => {
   try {
     const order = await checkOrderExists(id);
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     await prisma.order.delete({
       where: { id: parseInt(id) },
     });
 
-    res.status(204).send();
+    responseUtil.success(res, "Xoá bản ghi thành công", 204);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    responseUtil.error(res, "Xoá bản ghi thất bại", error.message, 500);
   }
 };
 
