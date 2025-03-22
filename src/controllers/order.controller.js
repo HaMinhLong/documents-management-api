@@ -50,7 +50,7 @@ const getOrders = async (req, res) => {
   }
 };
 
-const checkOrderExists = async (id) => {
+const checkRecordExists = async (id) => {
   const order = await prisma.order.findUnique({
     where: { id: parseInt(id) },
   });
@@ -60,9 +60,9 @@ const checkOrderExists = async (id) => {
 const getOrderById = async (req, res) => {
   const { id } = req.params;
   try {
-    const order = await checkOrderExists(id);
+    const order = await checkRecordExists(id);
     if (!order) {
-      responseUtil.error(res, "Bản ghi không tồn tại", 404);
+      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     responseUtil.success(res, "Lấy thông tin bản ghi thành công", order, 200);
@@ -81,9 +81,9 @@ const updateOrder = async (req, res) => {
   const { user_id, total_amount, status } = req.body;
 
   try {
-    const order = await checkOrderExists(id);
+    const order = await checkRecordExists(id);
     if (!order) {
-      responseUtil.error(res, "Bản ghi không tồn tại", 404);
+      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     const updatedOrder = await prisma.order.update({
@@ -100,9 +100,9 @@ const updateOrder = async (req, res) => {
 const deleteOrder = async (req, res) => {
   const { id } = req.params;
   try {
-    const order = await checkOrderExists(id);
+    const order = await checkRecordExists(id);
     if (!order) {
-      responseUtil.error(res, "Bản ghi không tồn tại", 404);
+      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     await prisma.order.delete({

@@ -7,6 +7,7 @@ import "dotenv/config";
 import authRoutes from "./routes/auth.router.js";
 import userRoutes from "./routes/user.router.js";
 import orderRoutes from "./routes/order.router.js";
+import transactionRoutes from "./routes/transaction.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1", authRoutes);
 app.use("/api/v1", userRoutes);
 app.use("/api/v1", orderRoutes);
+app.use("/api/v1", transactionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

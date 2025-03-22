@@ -99,7 +99,7 @@ const getUserById = async (req, res) => {
   try {
     const user = await checkUserExists(id);
     if (!user) {
-      responseUtil.error(res, "Bản ghi không tồn tại", 404);
+      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     responseUtil.success(res, "Lấy thông tin bản ghi thành công", user, 200);
@@ -159,7 +159,7 @@ const deleteUser = async (req, res) => {
   try {
     const user = await checkUserExists(id);
     if (!user) {
-      responseUtil.error(res, "Bản ghi không tồn tại", 404);
+      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
     await prisma.user.update({
