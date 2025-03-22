@@ -84,31 +84,6 @@ const getRecordById = async (req, res) => {
   }
 };
 
-const updateRecordStatus = async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  try {
-    const updatedReferralHistory = await prisma.referralHistory.update({
-      where: { id: parseInt(id) },
-      data: { status },
-    });
-
-    responseUtil.success(
-      res,
-      "Cập nhật trạng thái thành công",
-      updatedReferralHistory
-    );
-  } catch (error) {
-    responseUtil.error(
-      res,
-      "Xảy ra lỗi khi cập nhật trạng thái",
-      error.message,
-      500
-    );
-  }
-};
-
 const updateRecord = async (req, res) => {
   const { id } = req.params;
   const { referred_id, order_id, commission_amount, status } = req.body;
@@ -156,7 +131,6 @@ export default {
   createRecord,
   getRecords,
   getRecordById,
-  updateRecordStatus,
   updateRecord,
   deleteRecord,
 };

@@ -33,12 +33,45 @@ enum level_status {
   Diamond
 }
 
+enum order_status {
+  active
+  draft
+  pending
+  completed
+  cancelled
+}
+
+enum transaction_type {
+  deposit
+  withdrawal
+  purchase
+  sale
+  referral
+}
+
+enum transaction_status {
+  active
+  draft
+  pending
+  completed
+  failed
+}
+
+enum referral_status {
+  active
+  draft
+  pending
+  paid
+  cancelled
+}
+
+
 model ReferralHistory {
   id                Int      @id @default(autoincrement())
   referred_id       Int      
   order_id          Int      
   commission_amount Decimal  @db.Decimal(15, 2)
-  status            payment_status @default(pending)
+  status            referral_status @default(pending)
   created_at        DateTime @default(now()) 
 
   referred_user     User     @relation(fields: [referred_id], references: [id])
@@ -51,7 +84,7 @@ model Order {
   id     Int      @id @default(autoincrement())
   user_id      Int
   total_amount Decimal  @db.Decimal(15, 2)
-  status       payment_status @default(pending)
+  status       order_status @default(pending)
   created_at   DateTime @default(now())
 
   user         User     @relation(fields: [user_id], references: [id])
@@ -64,8 +97,8 @@ model Transaction {
   id          Int      @id @default(autoincrement())
   user_id     Int
   amount      Decimal  @db.Decimal(15, 2)
-  type        String   
-  status      payment_status @default(pending)
+  type      transaction_type @default(deposit)
+  status      transaction_status @default(pending)
   reference_id Int?    
   description String?  
   created_at  DateTime @default(now())
@@ -73,6 +106,27 @@ model Transaction {
   user        User     @relation(fields: [user_id], references: [id])
 
   @@map("transactions")
+}
+
+model Document {
+  id             Int      @id @default(autoincrement())
+  title          String   @db.VarChar(255)
+  description    String? 
+  price          Decimal  @db.Decimal(15, 2)
+  file_path      String   @db.VarChar(255) 
+  instruct_path  String?  @db.VarChar(255) 
+  user_id        Int      
+  subject_id     Int      
+  university_id  Int     
+  view_count     Int      @default(0) 
+  download_count Int      @default(0) 
+  status      user_status @default(pending)
+  created_at     DateTime @default(now()) 
+  updated_at     DateTime @default(now()) @updatedAt
+
+  user           User     @relation(fields: [user_id], references: [id])
+
+  @@map("documents")
 }
 
 
@@ -94,6 +148,7 @@ model User {
   orders       Order[]
   transactions Transaction[]
   referral_history  ReferralHistory[]
+  documents      Document[]
 
   @@map("users")
 }
