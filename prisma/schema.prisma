@@ -27,6 +27,18 @@ enum level_status {
   Diamond
 }
 
+model Order {
+  id     Int      @id @default(autoincrement())
+  user_id      Int
+  total_amount Decimal  @db.Decimal(15, 2)
+  status       String   @default("pending")
+  created_at   DateTime @default(now())
+
+  user         User     @relation(fields: [user_id], references: [id])
+
+  @@map("orders")
+}
+
 model User {
   id       Int         @id @default(autoincrement())
   username      String      @unique @db.VarChar(255)
@@ -41,6 +53,8 @@ model User {
   created_at    DateTime    @default(now())
   updated_at    DateTime    @default(now()) @updatedAt
   is_deleted    Boolean     @default(false)
+
+  orders       Order[]
 
   @@map("users")
 }

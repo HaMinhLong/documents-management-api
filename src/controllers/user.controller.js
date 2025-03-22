@@ -51,15 +51,21 @@ const getUsers = async (req, res) => {
   }
 };
 
+const checkUserExists = async (id) => {
+  const user = await prisma.user.findUnique({
+    where: { id: parseInt(id) },
+  });
+  return user;
+};
+
 const getUserById = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
-    });
+    const user = await checkUserExists(id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
     res.status(200).json(user);
   } catch (error) {
     res
@@ -82,6 +88,12 @@ const updateUser = async (req, res) => {
     level,
   } = req.body;
   try {
+    const user = await checkUserExists(id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
       data: {
@@ -107,9 +119,16 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
+    const user = await checkUserExists(id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     await prisma.user.delete({
       where: { id: parseInt(id) },
     });
+
     res.status(204).send();
   } catch (error) {
     res

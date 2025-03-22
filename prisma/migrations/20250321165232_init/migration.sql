@@ -5,6 +5,17 @@ CREATE TYPE "user_status" AS ENUM ('pending', 'active', 'inactive', 'blocked');
 CREATE TYPE "level_status" AS ENUM ('Silver', 'Gold', 'Platinum', 'Diamond');
 
 -- CreateTable
+CREATE TABLE "orders" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "total_amount" DECIMAL(15,2) NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "orders_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "username" VARCHAR(255) NOT NULL,
@@ -31,3 +42,6 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_referral_code_key" ON "users"("referral_code");
+
+-- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import userRoutes from "./routes/user.router.js";
+import orderRoutes from "./routes/order.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1", userRoutes);
+app.use("/api/v1", orderRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

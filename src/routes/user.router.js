@@ -9,23 +9,23 @@ import { handleValidationErrors } from "../middlewares/validation.middleware.js"
 import userController from "../controllers/user.controller.js";
 
 router.post(
-  "/users",
+  "/user",
   validateCreateUser,
   handleValidationErrors,
   userController.createUser
 );
 
-router.get("/users", userController.getUsers);
+router.get("/user", userController.getUsers);
 
-router.get("/users/:id", userController.getUserById);
+router.get("/user/:id", userController.getUserById);
 
 router.put(
-  "/users/:id",
+  "/user/:id",
   validateUpdateUser,
   handleValidationErrors,
   userController.updateUser
 );
 
-router.delete("/users/:id", userController.deleteUser);
+router.delete("/user/:id", userController.deleteUser);
 
 export default router;
