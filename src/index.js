@@ -14,6 +14,7 @@ import referralHistoryRoutes from "./routes/referralHistory.router.js";
 import documentRoutes from "./routes/document.router.js";
 import subjectRoutes from "./routes/subject.router.js";
 import universityRoutes from "./routes/university.router.js";
+import categoryRoutes from "./routes/category.router.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,6 +43,7 @@ app.use("/api/v1", referralHistoryRoutes);
 app.use("/api/v1", documentRoutes);
 app.use("/api/v1", subjectRoutes);
 app.use("/api/v1", universityRoutes);
+app.use("/api/v1", categoryRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

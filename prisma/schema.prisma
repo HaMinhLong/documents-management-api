@@ -132,6 +132,30 @@ model University {
   @@map("universities")
 }
 
+model Category {
+  id   Int                @id @default(autoincrement())
+  name          String
+  description   String?
+  status         user_status  @default(pending)
+  created_at    DateTime           @default(now())
+  updated_at    DateTime           @default(now()) @updatedAt
+
+  documentCategories DocumentCategory[] 
+
+  @@map("categories")
+}
+
+model DocumentCategory {
+  document_id Int      @map("document_id")
+  category_id Int      @map("category_id")
+  document    Document @relation(fields: [document_id], references: [id])
+  category    Category @relation(fields: [category_id], references: [id])
+
+  @@id([document_id, category_id]) 
+
+  @@map("document_categories")
+}
+
 model Document {
   id             Int      @id @default(autoincrement())
   title          String   @db.VarChar(255)
@@ -151,6 +175,7 @@ model Document {
   user           User     @relation(fields: [user_id], references: [id])
   subject       Subject  @relation(fields: [subject_id], references: [id])
   university    University  @relation(fields: [university_id], references: [id])
+  documentCategories DocumentCategory[] 
 
   @@map("documents")
 }
