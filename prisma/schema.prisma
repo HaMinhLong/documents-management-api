@@ -89,8 +89,24 @@ model Order {
 
   user         User     @relation(fields: [user_id], references: [id])
   referral_history  ReferralHistory[]
+  orderItems  OrderItem[]
 
   @@map("orders")
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  order_id    Int
+  document_id Int
+  price       Decimal  @db.Decimal(15, 2)
+  status      user_status @default(pending)
+  created_at  DateTime @default(now())
+
+  order       Order    @relation(fields: [order_id], references: [id])
+
+  document    Document @relation(fields: [document_id], references: [id])
+
+  @@map("order_items")
 }
 
 model Transaction {
@@ -176,6 +192,7 @@ model Document {
   subject       Subject  @relation(fields: [subject_id], references: [id])
   university    University  @relation(fields: [university_id], references: [id])
   documentCategories DocumentCategory[] 
+  orderItems  OrderItem[]
 
   @@map("documents")
 }

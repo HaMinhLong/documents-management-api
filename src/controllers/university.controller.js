@@ -82,27 +82,6 @@ const getRecordById = async (req, res) => {
   }
 };
 
-const updateRecordStatus = async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  try {
-    const updatedRecord = await prisma.university.update({
-      where: { id: parseInt(id) },
-      data: { status },
-    });
-
-    responseUtil.success(res, "Cập nhật trạng thái thành công", updatedRecord);
-  } catch (error) {
-    responseUtil.error(
-      res,
-      "Xảy ra lỗi khi cập nhật trạng thái",
-      error.message,
-      500
-    );
-  }
-};
-
 const updateRecord = async (req, res) => {
   const { id } = req.params;
   const { name, status, description } = req.body;
@@ -150,7 +129,6 @@ export default {
   createRecord,
   getRecords,
   getRecordById,
-  updateRecordStatus,
   updateRecord,
   deleteRecord,
 };
