@@ -120,6 +120,18 @@ model Subject {
   @@map("subjects")
 }
 
+model University {
+  id  Int         @id @default(autoincrement())
+  name           String      @db.VarChar(255)
+  description    String?
+  status         user_status  @default(pending)
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @default(now()) @updatedAt
+  documents      Document[]  
+
+  @@map("universities")
+}
+
 model Document {
   id             Int      @id @default(autoincrement())
   title          String   @db.VarChar(255)
@@ -138,6 +150,7 @@ model Document {
 
   user           User     @relation(fields: [user_id], references: [id])
   subject       Subject  @relation(fields: [subject_id], references: [id])
+  university    University  @relation(fields: [university_id], references: [id])
 
   @@map("documents")
 }
