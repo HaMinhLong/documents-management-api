@@ -16,6 +16,7 @@ import subjectRoutes from "./routes/subject.router.js";
 import universityRoutes from "./routes/university.router.js";
 import categoryRoutes from "./routes/category.router.js";
 import orderItemRoutes from "./routes/orderItem.router.js";
+import fileImageRoutes from "./routes/fileImage.router.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,6 +47,7 @@ app.use("/api/v1", subjectRoutes);
 app.use("/api/v1", universityRoutes);
 app.use("/api/v1", categoryRoutes);
 app.use("/api/v1", orderItemRoutes);
+app.use("/api/v1", fileImageRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -193,8 +193,23 @@ model Document {
   university    University  @relation(fields: [university_id], references: [id])
   documentCategories DocumentCategory[] 
   orderItems  OrderItem[]
+  fileImages      FileImage[]
 
   @@map("documents")
+}
+
+model FileImage {
+  id          Int         @id @default(autoincrement())
+  document_id Int
+  image_path  String      @db.VarChar(255)
+  name        String?     @db.VarChar(255)
+  status      user_status @default(pending)
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @default(now()) @updatedAt
+
+  document    Document    @relation(fields: [document_id], references: [id])
+
+  @@map("file_images")
 }
 
 
