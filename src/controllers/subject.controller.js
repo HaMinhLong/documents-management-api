@@ -2,45 +2,41 @@ import prisma from "../prisma.js";
 import responseUtil from "../utils/response.util.js";
 
 const createRecord = async (req, res) => {
-  const { user_id, amount, type, status, reference_id, description } = req.body;
+  const { name, description, status } = req.body;
 
   try {
-    const transaction = await prisma.transaction.create({
+    const subject = await prisma.subject.create({
       data: {
-        user_id,
-        amount,
-        type,
-        status,
-        reference_id,
+        name,
         description,
+        status,
       },
     });
 
-    responseUtil.success(res, "Tạo bản ghi thành công", transaction, 201);
+    responseUtil.success(res, "Tạo bản ghi thành công", subject, 201);
   } catch (error) {
     responseUtil.error(res, "Xảy ra lỗi khi tạo bản ghi", error.message, 500);
   }
 };
 
 const getRecords = async (req, res) => {
-  const { page = 1, limit = 10, user_id } = req.query;
+  const { page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
 
   try {
-    const transactions = await prisma.transaction.findMany({
-      where: { user_id: user_id },
+    const subjects = await prisma.subject.findMany({
       skip: offset,
       take: parseInt(limit),
     });
 
-    const totalRecords = await prisma.transaction.count();
+    const totalRecords = await prisma.subject.count();
     const totalPages = Math.ceil(totalRecords / limit);
 
     responseUtil.success(
       res,
       "Lấy danh sách thành công",
       {
-        data: transactions,
+        data: subjects,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -56,26 +52,21 @@ const getRecords = async (req, res) => {
 };
 
 const checkRecordExists = async (id) => {
-  const transaction = await prisma.transaction.findUnique({
+  const subject = await prisma.subject.findUnique({
     where: { id: parseInt(id) },
   });
-  return transaction;
+  return subject;
 };
 
 const getRecordById = async (req, res) => {
   const { id } = req.params;
   try {
-    const transaction = await checkRecordExists(id);
-    if (!transaction) {
+    const subject = await checkRecordExists(id);
+    if (!subject) {
       return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
-    responseUtil.success(
-      res,
-      "Lấy thông tin bản ghi thành công",
-      transaction,
-      200
-    );
+    responseUtil.success(res, "Lấy thông tin bản ghi thành công", subject, 200);
   } catch (error) {
     responseUtil.error(
       res,
@@ -91,16 +82,12 @@ const updateRecordStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
-    const updatedTransaction = await prisma.transaction.update({
+    const updatedSubject = await prisma.subject.update({
       where: { id: parseInt(id) },
       data: { status },
     });
 
-    responseUtil.success(
-      res,
-      "Cập nhật trạng thái thành công",
-      updatedTransaction
-    );
+    responseUtil.success(res, "Cập nhật trạng thái thành công", updatedSubject);
   } catch (error) {
     responseUtil.error(
       res,
@@ -113,23 +100,20 @@ const updateRecordStatus = async (req, res) => {
 
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { user_id, amount, type, status, reference_id, description } = req.body;
+  const { name, status, description } = req.body;
 
   try {
-    const transaction = await checkRecordExists(id);
-    if (!transaction) {
+    const subject = await checkRecordExists(id);
+    if (!subject) {
       return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
-    const updatedRecord = await prisma.transaction.update({
+    const updatedRecord = await prisma.subject.update({
       where: { id: parseInt(id) },
       data: {
-        user_id,
-        amount,
-        type,
-        status,
-        reference_id,
+        name,
         description,
+        status,
       },
     });
 
@@ -142,12 +126,12 @@ const updateRecord = async (req, res) => {
 const deleteRecord = async (req, res) => {
   const { id } = req.params;
   try {
-    const transaction = await checkRecordExists(id);
-    if (!transaction) {
+    const subject = await checkRecordExists(id);
+    if (!subject) {
       return responseUtil.error(res, "Bản ghi không tồn tại", 404);
     }
 
-    await prisma.transaction.delete({
+    await prisma.subject.delete({
       where: { id: parseInt(id) },
     });
 

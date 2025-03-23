@@ -12,6 +12,7 @@ import orderRoutes from "./routes/order.router.js";
 import transactionRoutes from "./routes/transaction.router.js";
 import referralHistoryRoutes from "./routes/referralHistory.router.js";
 import documentRoutes from "./routes/document.router.js";
+import subjectRoutes from "./routes/subject.router.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,6 +39,7 @@ app.use("/api/v1", orderRoutes);
 app.use("/api/v1", transactionRoutes);
 app.use("/api/v1", referralHistoryRoutes);
 app.use("/api/v1", documentRoutes);
+app.use("/api/v1", subjectRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
