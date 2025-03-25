@@ -5,6 +5,16 @@ import responseUtil from "../utils/response.util.js";
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log("email", email);
+
+  if (!email || !password) {
+    return responseUtil.error(
+      res,
+      "Vui lòng cung cấp email và mật khẩu",
+      null,
+      400
+    );
+  }
 
   try {
     const user = await prisma.user.findUnique({
@@ -12,12 +22,7 @@ const loginUser = async (req, res) => {
     });
 
     if (!user) {
-      return responseUtil.error(
-        res,
-        "Email hoặc mật khẩu không chính xác",
-        null,
-        401
-      );
+      return responseUtil.error(res, "Tài khoản không tồn tại", null, 404);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -31,10 +36,14 @@ const loginUser = async (req, res) => {
       );
     }
 
+    if (user.status === "blocked") {
+      return responseUtil.error(res, "Tài khoản của bạn đã bị khóa", null, 403);
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "10h" }
     );
 
     const { password_hash, ...userData } = user;

@@ -55,12 +55,19 @@ const createUser = async (req, res) => {
 };
 
 const getUsers = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, status, name } = req.query;
   const offset = (page - 1) * limit;
 
   try {
     const users = await prisma.user.findMany({
-      where: { is_deleted: false },
+      where: {
+        is_deleted: false,
+        status,
+        full_name: {
+          contains: name,
+          mode: "insensitive",
+        },
+      },
       skip: offset,
       take: parseInt(limit),
     });
