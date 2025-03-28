@@ -33,9 +33,9 @@ app.get("/", (req, res) => {
   res.send("Documents Management System");
 });
 
-console.log("router", express.static(path.join(__dirname, "uploads")));
+console.log("router", __dirname);
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.use("/api/v1", authRoutes);
 app.use("/api/v1", userRoutes);

@@ -6,20 +6,15 @@ const storage = multer.diskStorage({
     cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
+    console.log("Original name:", file.originalname);
+    const ext = path.extname(file.originalname) || ".bin"; // fallback
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    cb(null, uniqueSuffix + ext);
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "application/pdf" ||
-    file.mimetype === "application/msword"
-  ) {
-    cb(null, true);
-  } else {
-    cb(new Error("Chỉ chấp nhận file PDF và Word"), false);
-  }
+  cb(null, true);
 };
 
 const upload = multer({ storage, fileFilter });

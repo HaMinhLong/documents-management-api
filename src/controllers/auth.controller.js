@@ -5,7 +5,6 @@ import responseUtil from "../utils/response.util.js";
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  console.log("email", email);
 
   if (!email || !password) {
     return responseUtil.error(

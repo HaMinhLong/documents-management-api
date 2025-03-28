@@ -1,8 +1,6 @@
 import express from "express";
 const router = express.Router();
-import multer from "multer";
-
-const upload = multer({ dest: "uploads/" });
+import upload from "../utils//multerConfig.util.js";
 
 // import {
 //   validateCreateReferralHistory,
@@ -10,6 +8,8 @@ const upload = multer({ dest: "uploads/" });
 // } from "../validators/referralHistory.validator.js";
 import { handleValidationErrors } from "../middlewares/validation.middleware.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
+import getUserTokenMiddleware from "../middlewares/getUserToken.middleware.js";
+
 import controller from "../controllers/document.controller.js";
 
 router.post(
@@ -20,6 +20,7 @@ router.post(
   ]),
   handleValidationErrors,
   authMiddleware,
+  getUserTokenMiddleware,
   controller.createRecord
 );
 
@@ -35,6 +36,7 @@ router.put(
   ]),
   handleValidationErrors,
   authMiddleware,
+  getUserTokenMiddleware,
   controller.updateRecord
 );
 

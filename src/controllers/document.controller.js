@@ -3,10 +3,20 @@ import responseUtil from "../utils/response.util.js";
 
 const createRecord = async (req, res) => {
   try {
-    const { title, description, price, user_id, subject_id, university_id } =
-      req.body;
+    const { title, description, price, subject_id, university_id } = req.body;
     const file_path = req.files?.file?.[0]?.path || null;
     const instruct_path = req.files?.instruct?.[0]?.path || null;
+
+    const user_id = req.user?.id;
+
+    if (!user_id) {
+      return responseUtil.error(
+        res,
+        "Không xác định được người dùng",
+        null,
+        401
+      );
+    }
 
     const document = await prisma.document.create({
       data: {
@@ -94,8 +104,18 @@ const getRecordById = async (req, res) => {
 const updateRecord = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, user_id, subject_id, university_id } =
-      req.body;
+    const { title, description, price, subject_id, university_id } = req.body;
+
+    const user_id = req.user?.id;
+
+    if (!user_id) {
+      return responseUtil.error(
+        res,
+        "Không xác định được người dùng",
+        null,
+        401
+      );
+    }
 
     const file_path = req.files?.file?.[0]?.path || null;
     const instruct_path = req.files?.instruct?.[0]?.path || null;
