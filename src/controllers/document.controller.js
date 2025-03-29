@@ -71,10 +71,14 @@ const getRecords = async (req, res) => {
 };
 
 const checkRecordExists = async (id) => {
-  const document = await prisma.document.findUnique({
+  return await prisma.document.findUnique({
     where: { id: parseInt(id) },
+    include: {
+      subject: true,
+      university: true,
+      user: true,
+    },
   });
-  return document;
 };
 
 const getRecordById = async (req, res) => {

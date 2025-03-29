@@ -26,6 +26,14 @@ const PORT = process.env.PORT || 8000;
 
 app.use(morgan("dev"));
 app.use(cors());
+app.use(
+  "/uploads",
+  cors({
+    origin: "*",
+    methods: ["GET"],
+  }),
+  express.static("uploads")
+);
 app.use(helmet());
 app.use(express.json());
 
