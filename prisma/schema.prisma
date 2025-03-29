@@ -220,6 +220,7 @@ model User {
   password_hash String      @db.VarChar(255)
   full_name     String?     @db.VarChar(255)
   phone         String?     @db.VarChar(255)
+  avatar      String?   @db.VarChar(255) 
   balance       Decimal?    @default(0) @db.Decimal(15, 2)
   referral_code String?     @unique @db.VarChar(255)
   status        user_status @default(pending)

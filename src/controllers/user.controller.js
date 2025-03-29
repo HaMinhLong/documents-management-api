@@ -54,6 +54,51 @@ const createUser = async (req, res) => {
   }
 };
 
+export const updateAvatar = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return responseUtil.error(
+        res,
+        "Không xác định được người dùng",
+        null,
+        401
+      );
+    }
+
+    const avatarPath = req.files?.file?.[0]?.path || null;
+
+    if (!avatarPath) {
+      return responseUtil.error(
+        res,
+        "Không có file avatar được tải lên",
+        null,
+        400
+      );
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarPath },
+    });
+
+    return responseUtil.success(
+      res,
+      "Cập nhật avatar thành công",
+      updatedUser,
+      200
+    );
+  } catch (error) {
+    return responseUtil.error(
+      res,
+      "Cập nhật avatar thất bại",
+      error.message,
+      500
+    );
+  }
+};
+
 const getUsers = async (req, res) => {
   const { page = 1, limit = 10, status, name } = req.query;
   const offset = (page - 1) * limit;
@@ -180,4 +225,11 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export default { createUser, getUsers, getUserById, updateUser, deleteUser };
+export default {
+  createUser,
+  updateAvatar,
+  getUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+};

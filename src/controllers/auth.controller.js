@@ -62,9 +62,11 @@ const getMe = async (req, res) => {
       select: {
         id: true,
         username: true,
+        avatar: true,
         email: true,
         full_name: true,
         phone: true,
+        balance: true,
         referral_code: true,
         is_deleted: true,
       },
