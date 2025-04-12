@@ -25,6 +25,12 @@ router.post(
   controller.createRecord
 );
 
+router.get(
+  "/documents/related",
+  authMiddleware,
+  controller.getRelatedDocuments
+);
+
 router.get("/document/", authMiddleware, controller.getRecords);
 
 router.get("/document/:id", authMiddleware, controller.getRecordById);

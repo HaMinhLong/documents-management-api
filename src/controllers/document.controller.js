@@ -51,6 +51,67 @@ const createRecord = async (req, res) => {
   }
 };
 
+const getRelatedDocuments = async (req, res) => {
+  const { subject_id, id, page = 1, limit = 4 } = req.query; // Lấy subject_id, id tài liệu hiện tại, page, limit
+  const offset = (page - 1) * limit;
+
+  try {
+    // Kiểm tra subject_id và id
+    if (!subject_id || !id) {
+      return responseUtil.error(res, "Thiếu subject_id hoặc id", null, 400);
+    }
+
+    // Lấy danh sách tài liệu liên quan
+    const documents = await prisma.document.findMany({
+      where: {
+        subject_id: parseInt(subject_id), // Tài liệu có cùng subject_id
+        id: { not: parseInt(id) }, // Loại trừ tài liệu hiện tại
+        status: "active", // Chỉ lấy tài liệu công khai
+      },
+      skip: parseInt(offset),
+      take: parseInt(limit),
+      include: {
+        user: true,
+        subject: true,
+        university: true,
+        fileImages: true, // Bao gồm hình ảnh để hiển thị ảnh demo
+      },
+    });
+
+    // Tính tổng số tài liệu liên quan
+    const totalRecords = await prisma.document.count({
+      where: {
+        subject_id: parseInt(subject_id),
+        id: { not: parseInt(id) },
+        status: "active",
+      },
+    });
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    responseUtil.success(
+      res,
+      "Lấy danh sách tài liệu liên quan thành công",
+      {
+        data: documents,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalItems: totalRecords,
+          totalPages,
+        },
+      },
+      200
+    );
+  } catch (error) {
+    responseUtil.error(
+      res,
+      "Lấy danh sách tài liệu liên quan thất bại",
+      error.message,
+      500
+    );
+  }
+};
+
 const getRecords = async (req, res) => {
   const {
     page = 1,
@@ -279,6 +340,7 @@ const deleteRecord = async (req, res) => {
 
 export default {
   createRecord,
+  getRelatedDocuments,
   getRecords,
   getRecordById,
   updateRecord,
