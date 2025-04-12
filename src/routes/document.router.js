@@ -17,6 +17,7 @@ router.post(
   upload.fields([
     { name: "file", maxCount: 1 },
     { name: "instruct", maxCount: 1 },
+    { name: "fileImages", maxCount: 10 },
   ]),
   handleValidationErrors,
   authMiddleware,
@@ -33,6 +34,7 @@ router.put(
   upload.fields([
     { name: "file", maxCount: 1 },
     { name: "instruct", maxCount: 1 },
+    { name: "fileImages", maxCount: 10 },
   ]),
   handleValidationErrors,
   authMiddleware,

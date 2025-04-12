@@ -3,9 +3,11 @@ import responseUtil from "../utils/response.util.js";
 
 const createRecord = async (req, res) => {
   try {
-    const { title, description, price, subject_id, university_id } = req.body;
+    const { title, description, price, subject_id, university_id, status } =
+      req.body;
     const file_path = req.files?.file?.[0]?.path || null;
     const instruct_path = req.files?.instruct?.[0]?.path || null;
+    const fileImages = req.files?.fileImages || [];
 
     const user_id = req.user?.id;
 
@@ -18,6 +20,7 @@ const createRecord = async (req, res) => {
       );
     }
 
+    // Tạo document
     const document = await prisma.document.create({
       data: {
         title,
@@ -28,6 +31,17 @@ const createRecord = async (req, res) => {
         user_id: parseInt(user_id),
         subject_id: parseInt(subject_id),
         university_id: parseInt(university_id),
+        status: status || "active",
+        fileImages: {
+          create: fileImages.map((file) => ({
+            image_path: file.path,
+            name: file.originalname,
+            status: "active",
+          })),
+        },
+      },
+      include: {
+        fileImages: true,
       },
     });
 
@@ -176,7 +190,8 @@ const getRecordById = async (req, res) => {
 const updateRecord = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, subject_id, university_id } = req.body;
+    const { title, description, price, subject_id, university_id, status } =
+      req.body;
 
     const user_id = req.user?.id;
 
@@ -191,6 +206,14 @@ const updateRecord = async (req, res) => {
 
     const file_path = req.files?.file?.[0]?.path || null;
     const instruct_path = req.files?.instruct?.[0]?.path || null;
+    const fileImages = req.files?.fileImages || [];
+
+    const document = await prisma.document.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!document) {
+      return responseUtil.error(res, "Tài liệu không tồn tại", null, 404);
+    }
 
     const updateData = {
       title,
@@ -199,18 +222,25 @@ const updateRecord = async (req, res) => {
       user_id: parseInt(user_id),
       subject_id: parseInt(subject_id),
       university_id: parseInt(university_id),
+      status,
+      file_path: file_path || document.file_path,
+      instruct_path: instruct_path || document.instruct_path,
+      fileImages: {
+        deleteMany: {},
+        create: fileImages.map((file) => ({
+          image_path: file.path,
+          name: file.originalname,
+          status: "active",
+        })),
+      },
     };
-
-    if (file_path) {
-      updateData.file_path = file_path;
-    }
-    if (instruct_path) {
-      updateData.instruct_path = instruct_path;
-    }
 
     const updatedDocument = await prisma.document.update({
       where: { id: parseInt(id) },
       data: updateData,
+      include: {
+        fileImages: true,
+      },
     });
 
     responseUtil.success(
