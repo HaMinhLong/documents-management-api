@@ -7,6 +7,10 @@ import getUserTokenMiddleware from "../middlewares/getUserToken.middleware.js";
 
 router.post("/auth/login", authController.loginUser);
 
+router.post("/auth/google", authController.googleLogin);
+
+router.post("/auth/facebook", authController.facebookLogin);
+
 router.get(
   "/auth/me",
   authMiddleware,

@@ -217,7 +217,7 @@ model User {
   id       Int         @id @default(autoincrement())
   username      String      @unique @db.VarChar(255)
   email         String      @unique @db.VarChar(255)
-  password_hash String      @db.VarChar(255)
+  password_hash String?      @db.VarChar(255)
   full_name     String?     @db.VarChar(255)
   phone         String?     @db.VarChar(255)
   avatar      String?   @db.VarChar(255) 

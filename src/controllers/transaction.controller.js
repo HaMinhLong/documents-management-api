@@ -2,7 +2,15 @@ import prisma from "../prisma.js";
 import responseUtil from "../utils/response.util.js";
 
 const createRecord = async (req, res) => {
-  const { user_id, amount, type, status, reference_id, description } = req.body;
+  let { user_id, amount, type, status, reference_id, description } = req.body;
+
+  if (!user_id) {
+    user_id = req.user?.id;
+  }
+
+  if (!user_id) {
+    return responseUtil.error(res, "Không xác định được người dùng", null, 401);
+  }
 
   try {
     const transaction = await prisma.transaction.create({
@@ -29,6 +37,9 @@ const getRecords = async (req, res) => {
   try {
     const transactions = await prisma.transaction.findMany({
       where: { user_id: user_id },
+      include: {
+        user: true,
+      },
       skip: offset,
       take: parseInt(limit),
     });
@@ -58,6 +69,15 @@ const getRecords = async (req, res) => {
 const checkRecordExists = async (id) => {
   const transaction = await prisma.transaction.findUnique({
     where: { id: parseInt(id) },
+    include: {
+      user: {
+        select: {
+          id: true,
+          full_name: true,
+          email: true,
+        },
+      },
+    },
   });
   return transaction;
 };
@@ -113,7 +133,7 @@ const updateRecordStatus = async (req, res) => {
 
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { user_id, amount, type, status, reference_id, description } = req.body;
+  const { amount, type, status, reference_id, description } = req.body;
 
   try {
     const transaction = await checkRecordExists(id);
@@ -124,7 +144,6 @@ const updateRecord = async (req, res) => {
     const updatedRecord = await prisma.transaction.update({
       where: { id: parseInt(id) },
       data: {
-        user_id,
         amount,
         type,
         status,

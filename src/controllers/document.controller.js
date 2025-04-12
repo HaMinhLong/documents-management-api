@@ -38,14 +38,60 @@ const createRecord = async (req, res) => {
 };
 
 const getRecords = async (req, res) => {
-  const { page = 1, limit = 10, user_id } = req.query;
+  const {
+    page = 1,
+    limit = 10,
+    user_id,
+    subject_id,
+    university_id,
+    category_id,
+  } = req.query;
   const offset = (page - 1) * limit;
+
+  const where = {};
+
+  if (!req.user) {
+    where.status = "active";
+  } else if (user_id && req.user.role !== "ADMIN") {
+    const parsedUserId = parseInt(user_id);
+
+    where.user_id = parsedUserId;
+  }
+
+  if (subject_id) {
+    const parsedSubjectId = parseInt(subject_id);
+    where.subject_id = parsedSubjectId;
+  }
+
+  if (university_id) {
+    const parsedUniversityId = parseInt(university_id);
+    where.university_id = parsedUniversityId;
+  }
+
+  if (category_id) {
+    where.documentCategories = {
+      some: {
+        category_id: { in: [parseInt(category_id)] },
+      },
+    };
+  }
 
   try {
     const documents = await prisma.document.findMany({
-      where: { user_id: user_id },
+      where,
       skip: offset,
       take: parseInt(limit),
+      include: {
+        user: true,
+        subject: true,
+        university: true,
+        documentCategories: {
+          include: {
+            category: true,
+          },
+        },
+        fileImages: true,
+      },
     });
 
     const totalRecords = await prisma.document.count();
@@ -84,15 +130,37 @@ const checkRecordExists = async (id) => {
 const getRecordById = async (req, res) => {
   const { id } = req.params;
   try {
+    // Kiểm tra tài liệu tồn tại
     const document = await checkRecordExists(id);
     if (!document) {
-      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
+      return responseUtil.error(res, "Bản ghi không tồn tại", null, 404);
     }
+
+    // Tăng view_count lên 1
+    const updatedDocument = await prisma.document.update({
+      where: { id: parseInt(id) },
+      data: {
+        view_count: {
+          increment: 1, // Tăng view_count lên 1
+        },
+      },
+      include: {
+        user: true,
+        subject: true,
+        university: true,
+        documentCategories: {
+          include: {
+            category: true,
+          },
+        },
+        fileImages: true,
+      },
+    });
 
     responseUtil.success(
       res,
       "Lấy thông tin bản ghi thành công",
-      document,
+      updatedDocument,
       200
     );
   } catch (error) {

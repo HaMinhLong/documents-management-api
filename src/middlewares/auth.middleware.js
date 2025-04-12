@@ -5,15 +5,18 @@ const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    return responseUtil.error(res, "Không có token xác thực", null, 401);
+    req.user = null; // Không có token, gán user là null
+    return next();
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = decoded; // Token hợp lệ, gán user
     next();
   } catch (error) {
-    responseUtil.error(res, "Token không hợp lệ", null, 401);
+    req.user = null; // Token không hợp lệ, coi như không có user
+    next();
+    // Lưu ý: Không trả lỗi 401 để cho phép truy cập công khai
   }
 };
 
