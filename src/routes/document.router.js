@@ -12,6 +12,12 @@ import getUserTokenMiddleware from "../middlewares/getUserToken.middleware.js";
 
 import controller from "../controllers/document.controller.js";
 
+router.get(
+  "/document/preview/:id",
+  authMiddleware,
+  controller.getDocumentPreview
+);
+
 router.post(
   "/document/",
   upload.fields([

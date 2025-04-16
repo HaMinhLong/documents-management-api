@@ -1,6 +1,97 @@
 import prisma from "../prisma.js";
 import responseUtil from "../utils/response.util.js";
 
+import { PDFDocument } from "pdf-lib";
+import fs from "fs";
+import path from "path";
+import { fileTypeFromFile } from "file-type";
+import libre from "libreoffice-convert";
+
+const getDocumentPreview = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Lấy tài liệu từ database
+    const document = await prisma.document.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        user: true,
+        subject: true,
+        university: true,
+        fileImages: true,
+      },
+    });
+
+    if (!document) {
+      return responseUtil.error(res, "Tài liệu không tồn tại", null, 404);
+    }
+
+    // Kiểm tra file_path
+    const filePath = path.resolve(document.file_path);
+    if (!fs.existsSync(filePath)) {
+      return responseUtil.error(res, "File tài liệu không tồn tại", null, 404);
+    }
+
+    // Kiểm tra định dạng file
+    const fileType = await fileTypeFromFile(filePath);
+    const mimeType = fileType?.mime;
+
+    let pdfBytes;
+
+    if (mimeType === "application/pdf") {
+      // Nếu là PDF, đọc trực tiếp
+      pdfBytes = fs.readFileSync(filePath);
+    } else if (
+      mimeType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || // DOCX
+      mimeType === "application/msword" // DOC
+    ) {
+      // Nếu là DOC hoặc DOCX, chuyển đổi sang PDF
+      const docBuffer = fs.readFileSync(filePath);
+      pdfBytes = await new Promise((resolve, reject) => {
+        libre.convert(docBuffer, ".pdf", undefined, (err, pdfBuffer) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(pdfBuffer);
+          }
+        });
+      });
+    } else {
+      return responseUtil.error(
+        res,
+        "Định dạng file không được hỗ trợ (chỉ hỗ trợ PDF, DOC, và DOCX)",
+        null,
+        400
+      );
+    }
+
+    // Tải PDF và cắt 5 trang đầu
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const previewDoc = await PDFDocument.create();
+    const pageCount = Math.min(pdfDoc.getPageCount(), 5);
+    const pages = await previewDoc.copyPages(pdfDoc, [
+      ...Array(pageCount).keys(),
+    ]);
+
+    for (const page of pages) {
+      previewDoc.addPage(page);
+    }
+
+    // Lưu file preview tạm thời
+    const previewBytes = await previewDoc.save();
+    const previewFileName = `preview_${id}_${Date.now()}.pdf`;
+    const previewFilePath = path.resolve("uploads", previewFileName);
+    fs.writeFileSync(previewFilePath, previewBytes);
+
+    // Trả về URL preview
+    const previewUrl = `${process.env.REACT_APP_SEVER_URL}/uploads/${previewFileName}`;
+    responseUtil.success(res, "Lấy preview thành công", { previewUrl }, 200);
+  } catch (error) {
+    responseUtil.error(res, "Lấy preview thất bại", error.message, 500);
+  }
+};
+
 const createRecord = async (req, res) => {
   try {
     const { title, description, price, subject_id, university_id, status } =
@@ -339,6 +430,7 @@ const deleteRecord = async (req, res) => {
 };
 
 export default {
+  getDocumentPreview,
   createRecord,
   getRelatedDocuments,
   getRecords,

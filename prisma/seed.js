@@ -3,33 +3,23 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const order = await prisma.order.create({
+  const user = await prisma.user.create({
     data: {
-      user_id: 1,
-      total_price: 59.99,
+      username: "admin",
+      email: "admin@yopmail.com",
+      password_hash:
+        "$2b$10$L7NQydIlwPhOdEd.mWVK1OK/V9HAghDaVnPrSYONNMA8SqrDKyvKy",
+      full_name: "Admin",
+      phone: "0123456789",
+      avatar: "https://example.com/avatar.png",
+      balance: 1000.0,
+      referral_code: "REF123456",
+      status: "active",
+      level: "Gold",
     },
   });
 
-  const document = await prisma.document.create({
-    data: {
-      title: "Advanced Mathematics",
-      description: "Advanced topics in Mathematics",
-      price: 29.99,
-      user_id: 1,
-      subject_id: 1,
-      university_id: 1,
-    },
-  });
-
-  await prisma.orderItem.create({
-    data: {
-      order_id: order.id,
-      document_id: document.id,
-      price: 29.99,
-    },
-  });
-
-  console.log("Seed data created successfully");
+  console.log("✅ User seeded:", user);
 }
 
 main()

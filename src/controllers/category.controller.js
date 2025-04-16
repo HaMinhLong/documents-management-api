@@ -20,11 +20,18 @@ const createRecord = async (req, res) => {
 };
 
 const getRecords = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, name, status } = req.query;
   const offset = (page - 1) * limit;
 
   try {
     const categories = await prisma.category.findMany({
+      where: {
+        status,
+        name: {
+          contains: name,
+          mode: "insensitive",
+        },
+      },
       skip: offset,
       take: parseInt(limit),
     });
