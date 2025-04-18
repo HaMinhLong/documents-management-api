@@ -94,8 +94,15 @@ const getDocumentPreview = async (req, res) => {
 
 const createRecord = async (req, res) => {
   try {
-    const { title, description, price, subject_id, university_id, status } =
-      req.body;
+    const {
+      title,
+      description,
+      price,
+      subject_id,
+      university_id,
+      status,
+      category_ids,
+    } = req.body; // Added category_ids to the destructured body
     const file_path = req.files?.file?.[0]?.path || null;
     const instruct_path = req.files?.instruct?.[0]?.path || null;
     const fileImages = req.files?.fileImages || [];
@@ -135,6 +142,17 @@ const createRecord = async (req, res) => {
         fileImages: true,
       },
     });
+
+    if (category_ids) {
+      const categories = category_ids.split(",").map((id) => ({
+        document_id: document.id,
+        category_id: parseInt(id),
+      }));
+
+      await prisma.documentCategory.createMany({
+        data: categories,
+      });
+    }
 
     responseUtil.success(res, "Tạo bản ghi thành công", document, 201);
   } catch (error) {
@@ -211,6 +229,7 @@ const getRecords = async (req, res) => {
     subject_id,
     university_id,
     category_id,
+    name,
   } = req.query;
   const offset = (page - 1) * limit;
 
@@ -240,6 +259,10 @@ const getRecords = async (req, res) => {
         category_id: { in: [parseInt(category_id)] },
       },
     };
+  }
+
+  if (name) {
+    where.title = { contains: name, mode: "insensitive" };
   }
 
   try {
@@ -413,19 +436,31 @@ const updateRecord = async (req, res) => {
 
 const deleteRecord = async (req, res) => {
   const { id } = req.params;
-  try {
-    const document = await checkRecordExists(id);
-    if (!document) {
-      return responseUtil.error(res, "Bản ghi không tồn tại", 404);
-    }
 
+  try {
+    // Delete associated DocumentCategory records
+    await prisma.documentCategory.deleteMany({
+      where: {
+        document_id: parseInt(id),
+      },
+    });
+
+    await prisma.fileImage.deleteMany({
+      where: {
+        document_id: parseInt(id),
+      },
+    });
+
+    // Now delete the Document
     await prisma.document.delete({
-      where: { id: parseInt(id) },
+      where: {
+        id: parseInt(id),
+      },
     });
 
     responseUtil.success(res, "Xoá bản ghi thành công", 204);
   } catch (error) {
-    responseUtil.error(res, "Xoá bản ghi thất bại", error.message, 500);
+    responseUtil.error(res, "Xóa bản ghi thất bại", error.message, 500);
   }
 };
 
