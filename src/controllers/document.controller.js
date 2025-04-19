@@ -365,8 +365,15 @@ const getRecordById = async (req, res) => {
 const updateRecord = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, subject_id, university_id, status } =
-      req.body;
+    const {
+      title,
+      description,
+      price,
+      subject_id,
+      university_id,
+      category_ids,
+      status,
+    } = req.body;
 
     const user_id = req.user?.id;
 
@@ -409,6 +416,26 @@ const updateRecord = async (req, res) => {
         })),
       },
     };
+
+    // Handle document categories
+    if (category_ids) {
+      const categories = category_ids.split(",").map((category_id) => ({
+        document_id: parseInt(id),
+        category_id: parseInt(category_id),
+      }));
+
+      // Delete existing categories
+      await prisma.documentCategory.deleteMany({
+        where: {
+          document_id: parseInt(id),
+        },
+      });
+
+      // Create new categories
+      await prisma.documentCategory.createMany({
+        data: categories,
+      });
+    }
 
     const updatedDocument = await prisma.document.update({
       where: { id: parseInt(id) },
