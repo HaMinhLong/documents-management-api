@@ -18,6 +18,12 @@ router.get(
   controller.getDocumentPreview
 );
 
+router.get(
+  "/document/top-viewed",
+  authMiddleware,
+  controller.getTopViewedDocuments
+);
+
 router.post(
   "/document/",
   upload.fields([

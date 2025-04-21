@@ -491,6 +491,43 @@ const deleteRecord = async (req, res) => {
   }
 };
 
+// Lấy 5 tài liệu có lượt xem cao nhất
+const getTopViewedDocuments = async (req, res) => {
+  try {
+    const topDocuments = await prisma.document.findMany({
+      where: {
+        status: "active",
+      },
+      orderBy: {
+        view_count: "desc",
+      },
+      take: 5,
+      include: {
+        user: true,
+        subject: true,
+        university: true,
+        fileImages: true,
+      },
+    });
+
+    responseUtil.success(
+      res,
+      "Lấy 5 tài liệu có lượt xem cao nhất thành công",
+      {
+        data: topDocuments,
+      },
+      200
+    );
+  } catch (error) {
+    responseUtil.error(
+      res,
+      "Lấy 5 tài liệu có lượt xem cao nhất thất bại",
+      error.message,
+      500
+    );
+  }
+};
+
 export default {
   getDocumentPreview,
   createRecord,
@@ -499,4 +536,5 @@ export default {
   getRecordById,
   updateRecord,
   deleteRecord,
+  getTopViewedDocuments,
 };
