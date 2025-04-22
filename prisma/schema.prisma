@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./node_modules/@prisma/client"
 }
 
 datasource db {
@@ -68,13 +69,11 @@ enum referral_status {
 
 model ReferralHistory {
   id                Int      @id @default(autoincrement())
-  referred_id       Int      
   order_id          Int      
   commission_amount Decimal  @db.Decimal(15, 2)
   status            referral_status @default(pending)
   created_at        DateTime @default(now()) 
 
-  referred_user     User     @relation(fields: [referred_id], references: [id])
   order             Order    @relation(fields: [order_id], references: [id])
 
   @@map("referral_histories")
@@ -230,7 +229,6 @@ model User {
 
   orders       Order[]
   transactions Transaction[]
-  referral_history  ReferralHistory[]
   documents      Document[]
   resetToken ResetToken[]
 

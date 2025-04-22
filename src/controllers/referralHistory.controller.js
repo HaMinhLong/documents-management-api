@@ -2,12 +2,11 @@ import prisma from "../prisma.js";
 import responseUtil from "../utils/response.util.js";
 
 const createRecord = async (req, res) => {
-  const { referred_id, order_id, commission_amount, status } = req.body;
+  const { order_id, commission_amount, status } = req.body;
 
   try {
     const referralHistory = await prisma.referralHistory.create({
       data: {
-        referred_id,
         order_id,
         commission_amount,
         status,
@@ -86,7 +85,7 @@ const getRecordById = async (req, res) => {
 
 const updateRecord = async (req, res) => {
   const { id } = req.params;
-  const { referred_id, order_id, commission_amount, status } = req.body;
+  const { order_id, commission_amount, status } = req.body;
 
   try {
     const referralHistory = await checkRecordExists(id);
@@ -96,7 +95,6 @@ const updateRecord = async (req, res) => {
 
     const updatedRecord = await prisma.referralHistory.create({
       data: {
-        referred_id,
         order_id,
         commission_amount,
         status,

@@ -11,6 +11,7 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 import getUserTokenMiddleware from "../middlewares/getUserToken.middleware.js";
 
 import controller from "../controllers/document.controller.js";
+import paymentController from "../controllers/payment.controller.js";
 
 router.get(
   "/document/preview/:id",
@@ -22,6 +23,13 @@ router.get(
   "/document/top-viewed",
   authMiddleware,
   controller.getTopViewedDocuments
+);
+
+router.post(
+  "/document/payment",
+  authMiddleware,
+  getUserTokenMiddleware,
+  paymentController.createPayment
 );
 
 router.post(
