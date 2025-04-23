@@ -24,6 +24,18 @@ const getOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       where: { user_id: user_id },
+      include: {
+        user: true,
+        orderItems: {
+          include: {
+            document: true,
+          },
+        },
+        referral_history: true,
+      },
+      orderBy: {
+        created_at: "desc",
+      },
       skip: offset,
       take: parseInt(limit),
     });

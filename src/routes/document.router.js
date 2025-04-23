@@ -70,4 +70,11 @@ router.put(
 
 router.delete("/document/:id", authMiddleware, controller.deleteRecord);
 
+router.get(
+  "/documents/purchased",
+  authMiddleware,
+  getUserTokenMiddleware,
+  controller.getPurchasedDocuments
+);
+
 export default router;

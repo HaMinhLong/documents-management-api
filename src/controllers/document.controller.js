@@ -337,6 +337,15 @@ const getRecordById = async (req, res) => {
         user: true,
         subject: true,
         university: true,
+        orderItems: {
+          include: {
+            order: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
         documentCategories: {
           include: {
             category: true,
@@ -528,6 +537,80 @@ const getTopViewedDocuments = async (req, res) => {
   }
 };
 
+const getPurchasedDocuments = async (req, res) => {
+  try {
+    const user_id = req.user?.id;
+    if (!user_id) {
+      return responseUtil.error(
+        res,
+        "Không xác định được người dùng",
+        null,
+        401
+      );
+    }
+
+    // Get all active orders for the user
+    const orders = await prisma.order.findMany({
+      where: {
+        user_id: Number(user_id),
+        status: "active",
+      },
+      select: { id: true },
+    });
+
+    const orderIds = orders.map((order) => order.id);
+
+    if (orderIds.length === 0) {
+      return responseUtil.success(
+        res,
+        "Không có tài liệu đã mua",
+        { data: [] },
+        200
+      );
+    }
+
+    // Get all orderItems with their associated documents
+    const orderItems = await prisma.orderItem.findMany({
+      where: {
+        order_id: {
+          in: orderIds,
+        },
+      },
+      include: {
+        document: {
+          include: {
+            user: true,
+            subject: true,
+            university: true,
+            fileImages: true,
+          },
+        },
+      },
+    });
+
+    // Filter out null documents and create unique list
+    const purchasedDocuments = [
+      ...new Set(
+        orderItems.filter((item) => item.document).map((item) => item.document)
+      ),
+    ];
+
+    responseUtil.success(
+      res,
+      "Lấy danh sách tài liệu đã mua thành công",
+      { data: purchasedDocuments },
+      200
+    );
+  } catch (error) {
+    responseUtil.error(
+      res,
+      "Lấy danh sách tài liệu đã mua thất bại",
+      error.message,
+      500
+    );
+  }
+};
+
 export default {
   getDocumentPreview,
   createRecord,
@@ -537,4 +620,5 @@ export default {
   updateRecord,
   deleteRecord,
   getTopViewedDocuments,
+  getPurchasedDocuments,
 };

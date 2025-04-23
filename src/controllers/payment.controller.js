@@ -23,9 +23,47 @@ const createPayment = async (req, res) => {
       );
     }
 
+    // Check if user has already purchased any of these documents
+    const existingOrders = await prisma.orderItem.findMany({
+      where: {
+        document_id: { in: document_ids },
+        order: {
+          user_id: Number(user_id),
+          status: "active",
+        },
+        status: "active",
+      },
+    });
+
+    if (existingOrders.length > 0) {
+      // Get document names that user already purchased
+      const purchasedDocuments = await prisma.document.findMany({
+        where: {
+          id: {
+            in: existingOrders.map((order) => order.document_id),
+          },
+        },
+        select: {
+          title: true,
+        },
+      });
+
+      const documentNames = purchasedDocuments
+        .map((doc) => doc.title)
+        .join(", ");
+
+      return responseUtil.error(
+        res,
+        `Bạn đã mua các tài liệu sau: ${documentNames}`,
+        null,
+        400
+      );
+    }
+
     // Lấy thông tin các tài liệu
     const documents = await prisma.document.findMany({
       where: { id: { in: document_ids.map(Number) }, status: "active" },
+      include: { user: true }, // Include document owner information
     });
 
     if (documents.length !== document_ids.length) {
@@ -80,7 +118,17 @@ const createPayment = async (req, res) => {
       );
     }
 
-    // Transaction: Trừ tiền user, tạo Order, tạo referral_history nếu có
+    // Group documents by owner for easier processing
+    const documentsByOwner = documents.reduce((acc, doc) => {
+      const ownerId = doc.user.id;
+      if (!acc[ownerId]) {
+        acc[ownerId] = [];
+      }
+      acc[ownerId].push(doc);
+      return acc;
+    }, {});
+
+    // Transaction: Trừ tiền user, cộng tiền cho chủ sở hữu, tạo Order, tạo referral_history nếu có
     const result = await prisma.$transaction(async (tx) => {
       // Trừ tiền user
       await tx.user.update({
@@ -88,17 +136,29 @@ const createPayment = async (req, res) => {
         data: { balance: { decrement: total_amount } },
       });
 
+      // Cộng tiền cho các chủ sở hữu tài liệu
+      for (const [ownerId, ownerDocs] of Object.entries(documentsByOwner)) {
+        const ownerTotal = ownerDocs.reduce(
+          (sum, doc) => sum + Number(doc.price),
+          0
+        );
+        await tx.user.update({
+          where: { id: Number(ownerId) },
+          data: { balance: { increment: ownerTotal } },
+        });
+      }
+
       // Tạo Order
       const order = await tx.order.create({
         data: {
           user_id: Number(user_id),
           total_amount,
-          status: "pending",
+          status: "active",
           orderItems: {
             create: documents.map((doc) => ({
               document_id: doc.id,
               price: doc.price,
-              status: "pending",
+              status: "active",
             })),
           },
         },
