@@ -144,7 +144,7 @@ const handlePaymentResponse = async (req, res) => {
       )}:${payDate.slice(12, 14)}`;
     }
 
-    const userId = vnp_Params["vnp_TxnRef"]?.split("_")?.[1];
+    const userId = parseInt(vnp_Params["vnp_TxnRef"]?.split("_")?.[1]);
 
     if (vnp_Params["vnp_ResponseCode"] === "00") {
       try {
@@ -152,16 +152,46 @@ const handlePaymentResponse = async (req, res) => {
 
         if (user) {
           const amountRecharge = parseInt(vnp_Params["vnp_Amount"]) / 100;
+          const totalBalance = parseInt(
+            Number(user.balance || 0) + amountRecharge
+          );
+
+          const totalDocuments = await prisma.document.count({
+            where: {
+              user_id: userId,
+            },
+          });
+
+          console.log("Tổng số tài liệu:", totalDocuments);
+          console.log("Tổng số dư:", totalBalance);
+
+          let level = "Silver";
+
+          if (totalBalance > 5000000 || totalDocuments >= 100) {
+            level = "Diamond";
+          } else if (
+            (totalBalance >= 3000000 && totalBalance < 5000000) ||
+            totalDocuments >= 50
+          ) {
+            level = "Platinum";
+          } else if (
+            (totalBalance >= 1000000 && totalBalance < 3000000) ||
+            totalDocuments >= 20
+          ) {
+            level = "Gold";
+          }
+
           await prisma.user.update({
-            where: { id: parseInt(userId) },
+            where: { id: userId },
             data: {
               ...user,
-              balance: parseInt(Number(user.balance || 0) + amountRecharge),
+              balance: totalBalance,
+              level,
             },
           });
 
           const transactionData = {
-            user_id: parseInt(userId),
+            user_id: userId,
             amount: amountRecharge,
             type: undefined,
             status: "active",

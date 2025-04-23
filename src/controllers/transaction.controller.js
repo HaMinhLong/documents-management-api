@@ -37,6 +37,7 @@ const getRecords = async (req, res) => {
   try {
     const transactions = await prisma.transaction.findMany({
       where: { user_id: user_id },
+      orderBy: { created_at: "desc" },
       include: {
         user: true,
       },

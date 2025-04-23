@@ -38,7 +38,7 @@ const loginUser = async (req, res) => {
       );
     }
 
-    if (user.status === "blocked") {
+    if (user.status !== "active") {
       return responseUtil.error(res, "Tài khoản của bạn đã bị khóa", null, 403);
     }
 
@@ -282,6 +282,7 @@ const getMe = async (req, res) => {
         balance: true,
         referral_code: true,
         is_deleted: true,
+        level: true,
       },
     });
 

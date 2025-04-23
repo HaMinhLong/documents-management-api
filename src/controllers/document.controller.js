@@ -154,6 +154,34 @@ const createRecord = async (req, res) => {
       });
     }
 
+    const [totalDocuments, user] = await Promise.all([
+      prisma.document.count({ where: { user_id: parseInt(user_id) } }),
+      prisma.user.findUnique({ where: { id: parseInt(user_id) } }),
+    ]);
+
+    const totalBalance = user.balance || 0;
+
+    let level = "Silver";
+
+    if (totalBalance > 5000000 || totalDocuments >= 100) {
+      level = "Diamond";
+    } else if (
+      (totalBalance >= 3000000 && totalBalance < 5000000) ||
+      totalDocuments >= 50
+    ) {
+      level = "Platinum";
+    } else if (
+      (totalBalance >= 1000000 && totalBalance < 3000000) ||
+      totalDocuments >= 1
+    ) {
+      level = "Gold";
+    }
+
+    await prisma.user.update({
+      where: { id: parseInt(user_id) },
+      data: { level },
+    });
+
     responseUtil.success(res, "Tạo bản ghi thành công", document, 201);
   } catch (error) {
     responseUtil.error(res, "Xảy ra lỗi khi tạo bản ghi", error.message, 500);
@@ -230,6 +258,7 @@ const getRecords = async (req, res) => {
     university_id,
     category_id,
     name,
+    status,
   } = req.query;
   const offset = (page - 1) * limit;
 
@@ -241,6 +270,10 @@ const getRecords = async (req, res) => {
     const parsedUserId = parseInt(user_id);
 
     where.user_id = parsedUserId;
+  }
+
+  if (status) {
+    where.status = status;
   }
 
   if (subject_id) {
