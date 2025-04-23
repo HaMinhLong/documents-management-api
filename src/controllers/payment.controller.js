@@ -54,7 +54,7 @@ const createPayment = async (req, res) => {
 
       return responseUtil.error(
         res,
-        `Bạn đã mua các tài liệu sau: ${documentNames}`,
+        `Bạn đã mua các tài liệu trước đó rồi: ${documentNames}`,
         null,
         400
       );

@@ -17,13 +17,16 @@ import universityRoutes from "./routes/university.router.js";
 import categoryRoutes from "./routes/category.router.js";
 import orderItemRoutes from "./routes/orderItem.router.js";
 import fileImageRoutes from "./routes/fileImage.router.js";
-import vnpayRoutes from "./routes/vnpay.routes.js";
+import vnpayRoutes from "./routes/vnpay.router.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+app.set("views", path.join(process.cwd(), "src/views"));
+app.set("view engine", "ejs");
 
 app.use(morgan("dev"));
 app.use(cors());
