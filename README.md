@@ -50,7 +50,13 @@ cp .env.example .env
 npx prisma migrate dev
 ```
 
-5. Chạy server
+5. Seed dữ liệu
+
+```bash
+npx npm run seed
+```
+
+6. Chạy server
 
 ```bash
 npm run dev
