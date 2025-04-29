@@ -98,6 +98,16 @@ const googleLogin = async (req, res) => {
   }
 };
 
+function removeVietnameseTones(str) {
+  return str
+    .normalize("NFD") // Tách các dấu ra khỏi ký tự gốc
+    .replace(/[\u0300-\u036f]/g, "") // Xóa các dấu
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D") // Xử lý riêng chữ đ
+    .replace(/\s+/g, "") // Xóa khoảng trắng
+    .toLowerCase(); // Chuyển thành chữ thường
+}
+
 const facebookLogin = async (req, res) => {
   const { access_token } = req.body;
 
@@ -105,7 +115,9 @@ const facebookLogin = async (req, res) => {
     const fbResponse = await axios.get(
       `https://graph.facebook.com/me?fields=id,name,email&access_token=${access_token}`
     );
-    const { email, name, id: facebookId } = fbResponse.data;
+    const { name, id: facebookId } = fbResponse.data;
+
+    const email = `${removeVietnameseTones(name)}_${facebookId}@facebook.com`;
 
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
